@@ -1,31 +1,11 @@
 const express = require("express");
 const { ObjectId } = require('mongodb');
-const mongoose = require('mongoose');
-
-const urlModel = new mongoose.Schema({
-  originalURL: {
-    type: String,
-    required: true
-  },
-  shortCode: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-});
-
-const Url = mongoose.model('links', urlModel);
-
+const cryptojs = require('crypto-js');
+const base62 = require('base62');
 
 const linkRoutes = express.Router();
- 
 
 const dbo = require("../db/conn.ts");
-
 
 linkRoutes.route("/link").get(function (req, res) {
  let db_connect = dbo.getDb("url_shortener");
@@ -38,16 +18,29 @@ linkRoutes.route("/link").get(function (req, res) {
    });
 });
 
-linkRoutes.route("/link/add").post(function (req, response) {
+linkRoutes.route("/link/add").post(async function (req, response) {
   let db_connect = dbo.getDb();
-  let link = {
-    originalURL: req.body.originalURL,
-    shortCode: req.body.shortCode,
+  const { originalURL } = req.body;
+  const hash = cryptojs.SHA256(originalURL).toString();
+  const hashNum = parseInt(hash.substring(0, 12), 16);
+  const shortCode = base62.encode(hashNum);
+  const firstSixChars = shortCode.slice(0, 3);
+
+  let collect = await db_connect.collection("links");
+  let result;
+  try {
+    result = await collect.insertOne({
+      originalURL,
+      shortCode: firstSixChars,
+      createdAt: new Date(),
+    });
+    response.send(result).status(204);
+  } catch (err) {
+    console.log(err);
+    response.status(500).json({ error: "Database insert failed" });
   }
-  db_connect.collection("links").insertOne(link, function(err, res) {
-    if (err) throw err;
-    response.json(res)
-  })
-})
+});
+
+
  
 module.exports = linkRoutes;
