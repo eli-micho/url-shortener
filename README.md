@@ -9,7 +9,7 @@ This is a web application that allows you to store and generate short links. The
 ## Installation
 1. Clone the repository to your local machine
 2. Start the web server
-   ```sh
+  ```sh
   cd server
   npm install
   npm run dev
