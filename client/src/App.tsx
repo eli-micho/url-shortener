@@ -4,20 +4,17 @@ import {
   Alert,
   Box,
   Button,
-  IconButton,
+  Grow,
   InputAdornment,
   Link,
-  List,
-  ListItem,
   Paper,
   Snackbar,
   TextField,
   Typography,
   useTheme,
 } from '@mui/material';
-import { indigo } from '@mui/material/colors';
 import LinkRoundedIcon from '@mui/icons-material/LinkRounded';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
+import LinkList from './components/LinkList/LinkList';
 
 const urlRegex = /^(ftp|http|https):\/\/[^ "]+$/;
 
@@ -46,13 +43,6 @@ function App() {
     getRecords();
   }, []);
 
-  const handleLinkCopy = (url: string) => {
-    if (url) {
-      navigator.clipboard.writeText(url);
-      setMessageAlert('Copied!');
-    }
-  };
-
   const validateInput = () => {
     if (!linkInput) {
       setLinkError('');
@@ -67,7 +57,11 @@ function App() {
   };
 
   const onShortenClicked = async () => {
-    if (!linkError) {
+    if (!linkInput) {
+      setLinkError('Required');
+      return;
+    }
+    if (!linkError || linkInput) {
       try {
         const response = await fetch('http://localhost:5000/link/add', {
           method: 'POST',
@@ -101,26 +95,61 @@ function App() {
 
   return (
     <div className="App">
-      <Box>
+      <Box
+        sx={{
+          alignItems: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          justifyContent: 'center',
+          width: '100%',
+          [theme.breakpoints.down('md')]: {
+            padding: `0 ${theme.spacing(1.5)}`,
+          },
+        }}
+      >
         <Box
           sx={{
             marginBottom: theme.spacing(1),
             textAlign: 'center',
           }}
         >
-          <Typography variant="h3">Shortify</Typography>
+          <Typography
+            variant="h3"
+            component="span"
+            fontWeight={600}
+            sx={{
+              color: '#03a9f4',
+            }}
+          >
+            Url
+          </Typography>
+          <Typography variant="h3" component="span">
+            &nbsp;Shortener
+          </Typography>
           <Typography variant="subtitle1">Shorten links. That's it.</Typography>
         </Box>
+
         <Paper
           elevation={1}
           sx={{
+            alignItems: 'center',
             display: 'flex',
+            marginBottom: theme.spacing(5),
+            maxWidth: theme.spacing(80),
+            minHeight: theme.spacing(13),
             padding: theme.spacing(2),
-            marginBottom: theme.spacing(10),
+            width: '100%',
           }}
         >
           <TextField
             error={Boolean(linkError)}
+            FormHelperTextProps={{
+              sx: {
+                position: 'absolute',
+                top: '3.2em',
+              },
+            }}
             helperText={linkError}
             variant="outlined"
             value={linkInput}
@@ -141,80 +170,47 @@ function App() {
             }}
           />
           <Button
+            disabled={Boolean(linkError)}
             variant="contained"
             onClick={() => onShortenClicked()}
             sx={{
               textTransform: 'capitalize',
+              height: theme.spacing(5),
             }}
           >
             Shorten
           </Button>
         </Paper>
 
+        <Grow in={links.length > 0}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              boxSizing: 'border-box',
+              maxWidth: theme.spacing(80),
+              width: '100%',
+              position: 'relative',
+            }}
+          >
+            <LinkList links={links} setMessageAlert={setMessageAlert} />
+          </Box>
+        </Grow>
+
         <Box
+          component="footer"
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            boxSizing: 'border-box',
-            padding: theme.spacing(2),
+            position: 'fixed',
+            bottom: '0.5em',
           }}
         >
-          <Typography
-            variant="subtitle1"
-            sx={{
-              width: '100%',
-              alignSelf: 'start',
-            }}
+          <Link
+            variant="body2"
+            href="https://github.com/eli-micho/url-shortener"
+            target="_blank"
           >
-            Recent Links
-          </Typography>
-
-          <List
-            sx={{
-              maxHeight: '300px',
-              overflowY: 'auto',
-            }}
-          >
-            {links.length === 0 && (
-              <Typography variant="subtitle1">No records found</Typography>
-            )}
-            {links.map((item, ind) => (
-              <ListItem
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'start',
-                  padding: theme.spacing(1.5),
-                  backgroundColor: indigo[100],
-                  width: '100%',
-                  ...(ind % 2 !== 0
-                    ? {
-                        backgroundColor: (theme) => indigo[50],
-                        color: (theme) =>
-                          theme.palette.getContrastText(
-                            theme.palette.background.default
-                          ),
-                      }
-                    : {}),
-                }}
-                key={item._id}
-                secondaryAction={
-                  <IconButton
-                    edge="end"
-                    aria-label="copy"
-                    onClick={() => handleLinkCopy(item.shortCode)}
-                  >
-                    <ContentCopyRoundedIcon />
-                  </IconButton>
-                }
-              >
-                <Typography variant="body2">{item.shortCode}</Typography>
-                <Link href={item.originalURL} variant="caption">
-                  {item.originalURL}
-                </Link>
-              </ListItem>
-            ))}
-          </List>
+            Github
+          </Link>
         </Box>
       </Box>
 
