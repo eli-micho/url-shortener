@@ -14,8 +14,9 @@ import {
   useTheme,
 } from '@mui/material';
 import LinkRoundedIcon from '@mui/icons-material/LinkRounded';
-import LinkList from './components/LinkList/LinkList';
+import LinkList, { TLink } from './components/LinkList/LinkList';
 
+//to ensure we have a valid link
 const urlRegex = /^(ftp|http|https):\/\/[^ "]+$/;
 
 function App() {
@@ -24,7 +25,7 @@ function App() {
   const [linkInput, setLinkInput] = useState<string>('');
   const [linkError, setLinkError] = useState<string>('');
   const [messageAlert, setMessageAlert] = useState<string>('');
-  const [links, setLinks] = useState<any[]>([]);
+  const [links, setLinks] = useState<TLink[]>([]);
 
   const getRecords = async () => {
     try {
@@ -56,7 +57,7 @@ function App() {
     }
   };
 
-  const onShortenClicked = async () => {
+  const handleShorten = async () => {
     if (!linkInput) {
       setLinkError('Required');
       return;
@@ -72,11 +73,12 @@ function App() {
             originalURL: linkInput,
           }),
         }).catch((err) => {
+          //basic handling, in a real app want to handle this different
           window.alert(err);
           return;
         });
 
-        if (!response.ok) {
+        if (response && !response.ok) {
           throw new Error('Network response was not ok');
         }
         setLinkInput('');
@@ -163,6 +165,13 @@ function App() {
                 </InputAdornment>
               ),
             }}
+            inputProps={{
+              onKeyDown: (e) => {
+                if (e.key === 'Enter') {
+                  handleShorten();
+                }
+              },
+            }}
             fullWidth
             size="small"
             sx={{
@@ -172,7 +181,7 @@ function App() {
           <Button
             disabled={Boolean(linkError)}
             variant="contained"
-            onClick={() => onShortenClicked()}
+            onClick={() => handleShorten()}
             sx={{
               textTransform: 'capitalize',
               height: theme.spacing(5),
