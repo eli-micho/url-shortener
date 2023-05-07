@@ -1,3 +1,4 @@
+export {};
 const express = require('express');
 const linkRoutes = require('./routes/link.ts');
 

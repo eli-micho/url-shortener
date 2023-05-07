@@ -1,16 +1,12 @@
 {
   "compilerOptions": {
-    "incremental": true,
-    "target": "ESNext",
-    "module": "nodenext",
-    "allowJs": true,
-    "checkJs": false,
+    "target": "es6",
+    "module": "commonjs",
     "outDir": "./dist",
-    "sourceMap": true,
-    "strict": true,
-    "alwaysStrict": true,
-    "moduleResolution": "node",
-    "esModuleInterop": true
+    "rootDir": "./",
+    "esModuleInterop": true,
+    "strict": true
   },
-  "include": ["./**/*"]
+  "include": ["./**/*"],
+  "exclude": ["node_modules"]
 }
